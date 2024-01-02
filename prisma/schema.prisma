@@ -1,0 +1,37 @@
+// schema.prisma
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  username      String         @unique
+  messagesSent  Message[]      @relation("messagesSent")
+  conversationsInit Conversation[] @relation("initiatedConversations")
+  conversationsRec  Conversation[] @relation("receivedConversations")
+}
+
+model Conversation {
+  id        Int      @id @default(autoincrement())
+  userOneId Int
+  userTwoId Int
+  messages  Message[]
+  userOne   User     @relation("initiatedConversations", fields: [userOneId], references: [id])
+  userTwo   User     @relation("receivedConversations", fields: [userTwoId], references: [id])
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  content        String
+  createdAt      DateTime     @default(now())
+  authorId       Int
+  conversationId Int
+  author         User         @relation(name: "messagesSent", fields: [authorId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+}
